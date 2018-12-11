@@ -10,7 +10,7 @@ data = pa.read_csv(path)
 deployment_history = pa.read_csv('deployment_history.csv')
 
 # change the timestamps into datetime objects
-deployment_history = pa.to_datetime(deployment_history['Deployed on'], format='%d-%m-%y %H:%M',errors='ignore')
+deployment_history['Deployed on'] = pa.to_datetime(deployment_history['Deployed on'], format='%d-%m-%y %H:%M',errors='ignore')
 data['Start Timestamp'] = pa.to_datetime(data['Start Timestamp'], format='%Y/%m/%d %H:%M',errors='ignore')
 data['Complete Timestamp'] = pa.to_datetime(data['Complete Timestamp'], format='%Y/%m/%d %H:%M',errors='ignore')
 
@@ -29,13 +29,20 @@ def preprocess(print_to_file=False):
     data['Case ID'] = new_case_ids
 
     # add deployments
-    # for timestamp in data['Complete Timestamp']:
-    #     for dep_date in deployment_history['Deployed on']:
-    #         if (timestamp < dep_date):
-    #             data['Deployment'] = deployment_history['Model']
+    deployments = []
+    for timestamp in data['Complete Timestamp']:
+        model = ''
+        for dep_date in (deployment_history['Deployed on']):
 
-    #print(data[['Complete Timestamp', 'Deployment']])
-# filter per date
+            if (dep_date < timestamp):
+                model = (deployment_history.loc[deployment_history['Deployed on'] == dep_date, "Model"].iloc[0])
+                break
+        deployments.append(model)
+
+    data['Model'] = pa.Series(deployments)
+    print(data[['Complete Timestamp','Model']])
+
+    # filter per date
 def filter_per_date(start_date, end_date):
     filtered_data = data[(data['Start Timestamp'] > start_date) & (data['Complete Timestamp'] < end_date)]
     return filtered_data
