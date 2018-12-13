@@ -1,8 +1,12 @@
 import numpy as np
 import pandas as pa
-from datetime import datetime as dt
-# Change the date format
+import datetime as dt
 
+
+# date change
+def date_shift (date):
+    date = date + dt.timedelta(days=1)
+    return date.replace(hour = 0, minute = 0)
 
 #read the csv
 path = "log.csv"
@@ -11,6 +15,7 @@ deployment_history = pa.read_csv('deployment_history.csv')
 
 # change the timestamps into datetime objects
 deployment_history['Deployed on'] = pa.to_datetime(deployment_history['Deployed on'], format='%d-%m-%y %H:%M',errors='ignore')
+deployment_history['Deployed on'] = deployment_history['Deployed on'].apply(func=date_shift)
 data['Start Timestamp'] = pa.to_datetime(data['Start Timestamp'], format='%Y/%m/%d %H:%M',errors='ignore')
 data['Complete Timestamp'] = pa.to_datetime(data['Complete Timestamp'], format='%Y/%m/%d %H:%M',errors='ignore')
 
@@ -40,15 +45,14 @@ def preprocess(print_to_file=False):
         deployments.append(model)
 
     data['Model'] = pa.Series(deployments)
-    print(data[['Complete Timestamp','Model']])
 
     # filter per date
-def filter_per_date(start_date, end_date):
+def filter_per_date(start_date, end_date, print_to_csv = True):
     filtered_data = data[(data['Start Timestamp'] > start_date) & (data['Complete Timestamp'] < end_date)]
+    if (print_to_csv):
+        filtered_data.to_csv('filtered_log.csv')
     return filtered_data
 
-
-# extract the resources
 
 
 
