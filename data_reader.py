@@ -7,15 +7,34 @@ import datetime as dt
 def date_shift (date):
     date = date + dt.timedelta(days=1)
     return date.replace(hour = 0, minute = 0)
+# getting the end date
+def dep_finish (date_list):
+    start_dates = date_list.tolist()
+    start_dates.reverse()
+    result = []
+    for index in range(len(start_dates)):
 
+        if (index + 1 < len(start_dates)):
+            fin_date = start_dates[index + 1]
+            fin_date = fin_date - dt.timedelta(days=1)
+            fin_date = fin_date.replace(hour=23, minute= 59, second=0)
+            result.append(fin_date)
+        else:
+            result.append(dt.datetime.today())
+    result.reverse()
+    return result
 #read the csv
 path = "log.csv"
 data = pa.read_csv(path)
 deployment_history = pa.read_csv('deployment_history.csv')
 
 # change the timestamps into datetime objects
-deployment_history['Deployed on'] = pa.to_datetime(deployment_history['Deployed on'], format='%d-%m-%y %H:%M',errors='ignore')
+deployment_history['Deployed on'] = pa.to_datetime(deployment_history['Deployed on'], format='%Y-%m-%d %H:%M',errors='ignore')
 deployment_history['Deployed on'] = deployment_history['Deployed on'].apply(func=date_shift)
+#print(deployment_history.all)
+deployment_history['Finished on'] = dep_finish(deployment_history['Deployed on'])
+print(deployment_history[['Deployed on', 'Finished on']])
+
 data['Start Timestamp'] = pa.to_datetime(data['Start Timestamp'], format='%Y/%m/%d %H:%M',errors='ignore')
 data['Complete Timestamp'] = pa.to_datetime(data['Complete Timestamp'], format='%Y/%m/%d %H:%M',errors='ignore')
 
@@ -51,6 +70,11 @@ def filter_per_date(start_date, end_date, print_to_csv = True):
     filtered_data = data[(data['Start Timestamp'] > start_date) & (data['Complete Timestamp'] < end_date)]
     if (print_to_csv):
         filtered_data.to_csv('filtered_log.csv')
+    return filtered_data
+
+def filter_per_deployment(deployments):
+    filtere
+
     return filtered_data
 
 
