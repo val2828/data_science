@@ -31,7 +31,6 @@ deployment_history = pa.read_csv('deployment_history.csv')
 # change the timestamps into datetime objects
 deployment_history['Deployed on'] = pa.to_datetime(deployment_history['Deployed on'], format='%Y-%m-%d %H:%M',errors='ignore')
 deployment_history['Deployed on'] = deployment_history['Deployed on'].apply(func=date_shift)
-#print(deployment_history.all)
 deployment_history['Finished on'] = dep_finish(deployment_history['Deployed on'])
 
 
@@ -71,8 +70,8 @@ def filter_per_date(start_date, end_date, print_to_csv = False):
     ts_start_date = dt.datetime.strptime(start_date, '%Y-%m-%d %H:%M:%S')
     ts_end_date = dt.datetime.strptime(end_date, '%Y-%m-%d %H:%M:%S')
 
-
     filtered_data = data[(data['Start Timestamp'] > ts_start_date) & (data['Complete Timestamp'] < ts_end_date)]
+
     if (print_to_csv):
         path_to_data = 'filtered_logs/filtered_log' + start_date[0:10] + 'to' + end_date[0:10] + '.csv'
         filtered_data.to_csv(path_to_data)
