@@ -33,7 +33,7 @@ deployment_history['Deployed on'] = pa.to_datetime(deployment_history['Deployed 
 deployment_history['Deployed on'] = deployment_history['Deployed on'].apply(func=date_shift)
 #print(deployment_history.all)
 deployment_history['Finished on'] = dep_finish(deployment_history['Deployed on'])
-print(deployment_history[['Deployed on', 'Finished on']])
+
 
 data['Start Timestamp'] = pa.to_datetime(data['Start Timestamp'], format='%Y/%m/%d %H:%M',errors='ignore')
 data['Complete Timestamp'] = pa.to_datetime(data['Complete Timestamp'], format='%Y/%m/%d %H:%M',errors='ignore')
@@ -66,15 +66,34 @@ def preprocess(print_to_file=False):
     data['Model'] = pa.Series(deployments)
 
     # filter per date
-def filter_per_date(start_date, end_date, print_to_csv = True):
-    filtered_data = data[(data['Start Timestamp'] > start_date) & (data['Complete Timestamp'] < end_date)]
+def filter_per_date(start_date, end_date, print_to_csv = False):
+
+    ts_start_date = dt.datetime.strptime(start_date, '%Y-%m-%d %H:%M:%S')
+    ts_end_date = dt.datetime.strptime(end_date, '%Y-%m-%d %H:%M:%S')
+
+
+    filtered_data = data[(data['Start Timestamp'] > ts_start_date) & (data['Complete Timestamp'] < ts_end_date)]
     if (print_to_csv):
-        filtered_data.to_csv('filtered_log.csv')
+        path_to_data = 'filtered_logs/filtered_log' + start_date[0:10] + 'to' + end_date[0:10] + '.csv'
+        filtered_data.to_csv(path_to_data)
     return filtered_data
 
-def filter_per_deployment(deployments):
-    filtere
+def filter_per_deployment(deployments,print_to_csv = False):
 
+    frames = []
+    for deployment in deployments:
+        ts_start_date = deployment_history.loc[deployment_history['Model'] == deployment, 'Deployed on'].iloc[0]
+        ts_end_date = deployment_history.loc[deployment_history['Model'] == deployment, 'Finished on'].iloc[0]
+
+        start_date = ts_start_date.strftime('%Y/%m/%d %H:%M:%S')
+        end_date = ts_end_date.strftime('%Y/%m/%d %H:%M:%S')
+
+        frames.append(filter_per_date(start_date,end_date,False))
+    filtered_data = pa.concat(frames)
+    if (print_to_csv):
+        name_of_list = ''.join(deployments)
+        path_to_data = 'filtered_logs/filtered_log' + name_of_list + '.csv'
+        filtered_data.to_csv(path_to_data)
     return filtered_data
 
 
